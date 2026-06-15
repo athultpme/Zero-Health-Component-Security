@@ -1,0 +1,49 @@
+name: Security CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/checkout@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build --if-present
+
+      - name: Generate SBOM with Syft
+        run: |
+          curl -sSfL http://get.anchore.io/syft | sh -s -- -b ./
+          ./syft dir:. -o cyclonedx-json > zero-health-sbom.json 
+
+      - name: SCA with Grype
+        run: |
+        curl -sSfL https://github.com/anchore/grype/install.sh | sh -s -- -b ./
+        ./grype sbom:zero-health-sbom.json -o json > zero-health-sca.json 
+
+      - name: SAST with Semgrep
+        run: |
+         pip install semgrep
+         semgrep --config p/owasp-top-ten  --json > zero-health-sast.json
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            zero-health-sbom.json
+            zero-health-sca.json
+            zero-health-sast.json 
