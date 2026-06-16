@@ -31,8 +31,8 @@ jobs:
 
       - name: SCA with Grype
         run: |
-        curl -sSfL https://raw.githubusercontent.com/anchore/grype/install.sh | sh -s -- -b ./
-        ./grype sbom:zero-health-sbom.json -o json > zero-health-sca.json 
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/install.sh | sh -s -- -b ./
+          ./grype sbom:zero-health-sbom.json -o json > zero-health-sca.json 
 
       - name: SAST with Semgrep
         run: |
